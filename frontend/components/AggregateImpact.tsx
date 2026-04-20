@@ -121,7 +121,8 @@ export default function AggregateImpact({ triggered }: Props) {
   const sections = [
     { key: 'fiscal' as const, label: 'Budgetary impact' },
     { key: 'distributional' as const, label: 'Distributional impact' },
-    { key: 'winners' as const, label: 'Winners & losers' },
+    // Winners & losers tab temporarily hidden
+    // { key: 'winners' as const, label: 'Winners & losers' },
     { key: 'poverty' as const, label: 'Poverty impact' },
   ];
 
@@ -406,79 +407,18 @@ export default function AggregateImpact({ triggered }: Props) {
       })()}
 
       {/* ===== POVERTY IMPACT ===== */}
-      {activeSection === 'poverty' && (() => {
-        const pov = data.poverty;
-        const povertyMetrics = [
-          {
-            label: 'Overall poverty',
-            baseline: pov.poverty.all.baseline,
-            reform: pov.poverty.all.reform,
-          },
-          {
-            label: 'Child poverty',
-            baseline: pov.poverty.child.baseline,
-            reform: pov.poverty.child.reform,
-          },
-          {
-            label: 'Deep poverty',
-            baseline: pov.deep_poverty.all.baseline,
-            reform: pov.deep_poverty.all.reform,
-          },
-          {
-            label: 'Deep child poverty',
-            baseline: pov.deep_poverty.child.baseline,
-            reform: pov.deep_poverty.child.reform,
-          },
-        ];
-
-        const chartData = povertyMetrics.map((m) => {
-          const pctChange = m.baseline !== 0 ? ((m.reform - m.baseline) / m.baseline) * 100 : 0;
-          return { ...m, pctChange };
-        });
-
-        const pctValues = chartData.map(d => d.pctChange);
-        const minVal = Math.min(0, ...pctValues);
-        const maxVal = Math.max(0, ...pctValues);
-        const maxAbs = Math.max(Math.abs(minVal), Math.abs(maxVal));
-        const niceStep = (() => {
-          const rough = maxAbs / 3;
-          const mag = Math.pow(10, Math.floor(Math.log10(rough)));
-          const residual = rough / mag;
-          if (residual <= 1) return mag;
-          if (residual <= 2) return 2 * mag;
-          if (residual <= 5) return 5 * mag;
-          return 10 * mag;
-        })();
-        const niceMin = Math.floor(minVal / niceStep) * niceStep;
-        const niceMax = Math.ceil(maxVal / niceStep) * niceStep;
-        const niceTicks = Array.from(
-          { length: Math.round((niceMax - niceMin) / niceStep) + 1 },
-          (_, i) => niceMin + i * niceStep,
-        );
-
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Change in poverty rates (%)</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData} margin={CHART_MARGIN}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
-                    <XAxis dataKey="label" tick={TICK_STYLE} stroke="var(--chart-axis)" />
-                    <YAxis domain={[niceMin, niceMax]} ticks={niceTicks} tickFormatter={(v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(0)}%`} tick={TICK_STYLE} stroke="var(--chart-axis)" width={70} allowDecimals={false} />
-                    <Tooltip content={<CustomTooltip formatter={(v) => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`} />} />
-                    <ReferenceLine y={0} stroke="var(--chart-axis)" strokeWidth={1} />
-                    <Bar dataKey="pctChange" name="Change (%)" radius={[2, 2, 0, 0]}>
-                      {chartData.map((m, i) => (
-                        <Cell key={i} fill={m.pctChange <= 0 ? COLORS.positive : COLORS.negative} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              <ChartWatermark />
+      {activeSection === 'poverty' && (
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Poverty impact</h3>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <p className="text-gray-700">
+                We find no impact on poverty from these reforms.
+              </p>
             </div>
           </div>
-        );
-      })()}
+        </div>
+      )}
 
       <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
         These estimates are static: they do not capture behavioral responses such as changes in labor supply, tax avoidance, or migration.
