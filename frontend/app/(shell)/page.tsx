@@ -49,10 +49,10 @@ export default function Home() {
       <div className="bg-primary-500 text-white py-8 px-4 shadow-md">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-4xl font-bold mb-2">
-            Working Parents Tax Relief Act Calculator
+            Utah 2026 Tax Changes Calculator
           </h1>
           <p className="text-lg opacity-90">
-            Estimate the impact of Rep. McDonald Rivet&apos;s proposed EITC enhancement for parents of young children
+            See the impact of SB60 and HB290 on Utah households
           </p>
         </div>
       </div>

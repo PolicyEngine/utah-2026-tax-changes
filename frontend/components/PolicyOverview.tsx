@@ -109,7 +109,7 @@ export default function PolicyOverview() {
           the income thresholds at which the credit begins to phase out. Together,
           these changes reduce state tax liability for most Utah households.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <h3 className="font-semibold text-gray-800 mb-2">SB60 rate cut</h3>
             <p className="text-sm text-gray-600">
@@ -130,14 +130,6 @@ export default function PolicyOverview() {
             <p className="text-sm text-gray-600">
               Both changes take effect for tax year 2026, affecting returns filed
               in early 2027.
-            </p>
-          </div>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-800 mb-2">UT state tax</h3>
-            <p className="text-sm text-gray-600">
-              Utah uses a flat state income tax. The combined effect of SB60 and
-              HB290 lowers taxes for most households, with the largest share of
-              relief going to families with children.
             </p>
           </div>
         </div>
