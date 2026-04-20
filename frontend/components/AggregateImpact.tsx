@@ -3,9 +3,6 @@
 import { useState } from 'react';
 import {
   useAggregateImpact,
-  useTenYearTotal,
-  useTenYearFederalTotal,
-  useTenYearStateTotal,
   UTAH_DASHBOARD_YEAR,
 } from '@/hooks/useAggregateImpact';
 import {
@@ -20,8 +17,6 @@ import {
   Cell,
 } from 'recharts';
 import ChartWatermark from './ChartWatermark';
-import CongressionalDistrictImpact from './CongressionalDistrictImpact';
-
 // App-v2 color tokens using CSS variables
 const COLORS = {
   gainMore5: 'var(--chart-gain-more-5)',
@@ -74,11 +69,8 @@ export default function AggregateImpact({ triggered }: Props) {
   // Year is locked to 2026 for the Utah 2026 tax changes dashboard.
   const selectedYear = UTAH_DASHBOARD_YEAR;
   const { data, isLoading, error } = useAggregateImpact(triggered, selectedYear);
-  const { data: tenYearTotal } = useTenYearTotal(triggered);
-  const { data: tenYearFederal } = useTenYearFederalTotal(triggered);
-  const { data: tenYearState } = useTenYearStateTotal(triggered);
   const [activeSection, setActiveSection] = useState<
-    'fiscal' | 'distributional' | 'winners' | 'poverty' | 'district'
+    'fiscal' | 'distributional' | 'winners' | 'poverty'
   >('fiscal');
   const [distMode, setDistMode] = useState<'relative' | 'absolute'>('relative');
 
@@ -131,7 +123,6 @@ export default function AggregateImpact({ triggered }: Props) {
     { key: 'distributional' as const, label: 'Distributional impact' },
     { key: 'winners' as const, label: 'Winners & losers' },
     { key: 'poverty' as const, label: 'Poverty impact' },
-    { key: 'district' as const, label: 'District impact' },
   ];
 
   return (
@@ -208,45 +199,6 @@ export default function AggregateImpact({ triggered }: Props) {
               </div>
             </div>
           </div>
-
-          {/* 10-year window - 3 cards */}
-          {tenYearTotal != null && tenYearFederal != null && tenYearState != null && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">10-year budget window (2026-2035)</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className={`rounded-lg p-5 border ${
-                  tenYearState >= 0 ? 'bg-green-50 border-success' : 'bg-red-50 border-red-300'
-                }`}>
-                  <p className="text-sm text-gray-700 mb-2">Utah state revenue change</p>
-                  <p className={`text-2xl font-bold ${
-                    tenYearState >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {formatBillions(tenYearState)}
-                  </p>
-                </div>
-                <div className={`rounded-lg p-5 border ${
-                  tenYearFederal >= 0 ? 'bg-green-50 border-success' : 'bg-red-50 border-red-300'
-                }`}>
-                  <p className="text-sm text-gray-700 mb-2">Federal revenue change</p>
-                  <p className={`text-2xl font-bold ${
-                    tenYearFederal >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {formatBillions(tenYearFederal)}
-                  </p>
-                </div>
-                <div className={`rounded-lg p-5 border ${
-                  tenYearTotal >= 0 ? 'bg-green-50 border-success' : 'bg-red-50 border-red-300'
-                }`}>
-                  <p className="text-sm text-gray-700 mb-2">Total budgetary impact</p>
-                  <p className={`text-2xl font-bold ${
-                    tenYearTotal >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {formatBillions(tenYearTotal)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Income bracket table */}
           <div>
@@ -527,11 +479,6 @@ export default function AggregateImpact({ triggered }: Props) {
           </div>
         );
       })()}
-
-      {/* ===== DISTRICT IMPACT ===== */}
-      {activeSection === 'district' && (
-        <CongressionalDistrictImpact year={selectedYear} />
-      )}
 
       <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
         These estimates are static: they do not capture behavioral responses such as changes in labor supply, tax avoidance, or migration.
