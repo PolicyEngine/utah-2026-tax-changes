@@ -53,7 +53,7 @@ class TestLoadReform:
         reform = load_reform()
         ctc_root = "gov.states.ut.tax.income.credits.ctc.reduction.start"
         expected = {
-            f"{ctc_root}.MARRIED_SEPARATELY": 27000,
+            f"{ctc_root}.SEPARATE": 27000,
             f"{ctc_root}.SINGLE": 43000,
             f"{ctc_root}.HEAD_OF_HOUSEHOLD": 43000,
             f"{ctc_root}.JOINT": 54000,

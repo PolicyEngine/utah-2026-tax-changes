@@ -59,7 +59,7 @@ def get_reform_provisions() -> Dict[str, Dict[str, Any]]:
             ),
             "parameter": (
                 "gov.states.ut.tax.income.credits.ctc.reduction.start."
-                "MARRIED_SEPARATELY"
+                "SEPARATE"
             ),
             "pre_2026_value": 27_000,
         },

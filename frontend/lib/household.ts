@@ -20,7 +20,7 @@ const REFORM_POLICY: Record<string, Record<string, number>> = {
   "gov.states.ut.tax.income.rate": {
     "2026-01-01.2100-12-31": 0.045,
   },
-  "gov.states.ut.tax.income.credits.ctc.reduction.start.MARRIED_SEPARATELY": {
+  "gov.states.ut.tax.income.credits.ctc.reduction.start.SEPARATE": {
     "2026-01-01.2100-12-31": 27000,
   },
   "gov.states.ut.tax.income.credits.ctc.reduction.start.SINGLE": {
