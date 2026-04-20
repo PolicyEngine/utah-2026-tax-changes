@@ -41,10 +41,10 @@ export default function CongressionalDistrictImpact({ year = 2026 }: Props) {
         return res.text();
       })
       .then((text) => {
-        const lines = text.trim().split('\n');
-        const headers = lines[0].split(',');
+        const lines = text.trim().split(/\r?\n/);
+        const headers = lines[0].split(',').map((h) => h.trim());
         const rows = lines.slice(1).map((line) => {
-          const values = line.split(',');
+          const values = line.split(',').map((v) => v.trim());
           const row: Record<string, string | number> = {};
           headers.forEach((h, i) => {
             const val = values[i];
