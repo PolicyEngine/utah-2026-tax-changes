@@ -104,15 +104,15 @@ function HouseholdImpactTab() {
   // Initialize state from hash parameters if present
   const getInitialValues = () => {
     if (typeof window === 'undefined') {
-      return { income: 25000, age: 35, state: 'MI', married: false, dependents: [2] };
+      return { income: 50000, age: 35, state: 'UT', married: false, dependents: [5] };
     }
     const params = parseHashParams(window.location.hash);
     return {
-      income: params.income ?? 25000,
+      income: params.income ?? 50000,
       age: params.age ?? 35,
-      state: params.state ?? 'MI',
+      state: params.state ?? 'UT',
       married: params.married ?? false,
-      dependents: params.dependents ?? [2],
+      dependents: params.dependents ?? [5],
     };
   };
 
@@ -167,7 +167,7 @@ function HouseholdImpactTab() {
 
   const handleDependentCountChange = (count: number) => {
     const ages = [...dependentAges];
-    while (ages.length < count) ages.push(2);
+    while (ages.length < count) ages.push(5);
     ages.splice(count);
     setDependentAges(ages);
   };
@@ -271,7 +271,7 @@ function HouseholdImpactTab() {
           </div>
         </div>
 
-        {/* Row 2: Dependents, State */}
+        {/* Row 2: Dependents */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-5 mt-5">
           {/* Dependents */}
           <div>
@@ -286,7 +286,7 @@ function HouseholdImpactTab() {
             />
             {dependentAges.length > 0 && (
               <div className="mt-2">
-                <span className="block text-xs font-medium text-gray-500 mb-1">Age(s) - children under 4 qualify for increased EITC</span>
+                <span className="block text-xs font-medium text-gray-500 mb-1">Age(s) - children under 6 qualify for the CTC</span>
                 <div className="grid grid-cols-3 gap-1.5">
                 {dependentAges.map((age, i) => (
                   <input
@@ -310,20 +310,6 @@ function HouseholdImpactTab() {
             )}
           </div>
 
-          {/* State */}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1.5">State</label>
-            <select
-              value={stateCode}
-              onChange={(e) => setStateCode(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors appearance-none"
-              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
-            >
-              {US_STATES.map((s) => (
-                <option key={s.code} value={s.code}>{s.name}</option>
-              ))}
-            </select>
-          </div>
         </div>
 
         {/* Calculate button */}
