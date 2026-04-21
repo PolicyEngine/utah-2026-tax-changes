@@ -120,6 +120,10 @@ export default function CongressionalDistrictImpact({ year = 2026 }: Props) {
         </p>
       </div>
 
+      <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+        Note: These estimates use Utah&apos;s congressional district boundaries as they stood prior to November 10, 2025, when the Third District Court of Utah ordered a new map. Results do not yet reflect the court-ordered redistricting.
+      </p>
+
       {/* Map */}
       <div className="bg-white border border-gray-200 rounded-lg p-4">
         <UtahDistrictMap
