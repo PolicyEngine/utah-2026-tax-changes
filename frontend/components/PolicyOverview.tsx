@@ -135,6 +135,65 @@ export default function PolicyOverview() {
           </table>
         </div>
       </div>
+
+      {/* References and further reading */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">
+          References
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h4 className="font-semibold text-gray-800 mb-2">SB60 &mdash; Income tax rate</h4>
+            <ul className="text-sm text-gray-700 space-y-1">
+              <li>
+                <a
+                  href="https://www.policyengine.org/us/state-legislative-tracker/UT/ut-sb60-bill"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 hover:underline"
+                >
+                  PolicyEngine State Legislative Tracker analysis
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://le.utah.gov/~2025/bills/static/SB0060.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 hover:underline"
+                >
+                  Utah State Legislature bill text
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h4 className="font-semibold text-gray-800 mb-2">HB290 &mdash; Child Tax Credit expansion</h4>
+            <ul className="text-sm text-gray-700 space-y-1">
+              <li>
+                <a
+                  href="https://www.policyengine.org/us/state-legislative-tracker/UT/ut-hb290"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 hover:underline"
+                >
+                  PolicyEngine State Legislative Tracker analysis
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://le.utah.gov/~2026/bills/static/HB0290.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 hover:underline"
+                >
+                  Utah State Legislature bill text
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
