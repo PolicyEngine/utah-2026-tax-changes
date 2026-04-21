@@ -6,6 +6,7 @@ export interface UtahDistrictData {
   district: string;
   district_number: string;
   representative: string;
+  party?: 'R' | 'D';
   region: string;
   average_household_income_change: number;
   relative_household_income_change: number;

@@ -9,12 +9,18 @@ interface Props {
 }
 
 // Utah representatives (118th Congress)
-const UTAH_REPRESENTATIVES: Record<string, string> = {
-  '1': 'Blake Moore',
-  '2': 'Celeste Maloy',
-  '3': 'Mike Kennedy',
-  '4': 'Burgess Owens',
+const UTAH_REPRESENTATIVES: Record<string, { name: string; party: 'R' | 'D' }> = {
+  '1': { name: 'Blake Moore', party: 'R' },
+  '2': { name: 'Celeste Maloy', party: 'R' },
+  '3': { name: 'Mike Kennedy', party: 'R' },
+  '4': { name: 'Burgess Owens', party: 'R' },
 };
+
+function partyColor(party: 'R' | 'D' | undefined) {
+  if (party === 'R') return '#dc2626'; // red-600
+  if (party === 'D') return '#2563eb'; // blue-600
+  return '#6b7280'; // gray-500
+}
 
 // Utah district regions (for context in labels)
 const UTAH_DISTRICT_REGIONS: Record<string, string> = {
@@ -58,10 +64,12 @@ export default function CongressionalDistrictImpact({ year = 2026 }: Props) {
           .map((r) => {
             const districtNum = String(r.district).split('-')[1] || '';
             const districtId = districtNum.replace(/^0+/, '') || districtNum;
+            const rep = UTAH_REPRESENTATIVES[districtId];
             return {
               ...r,
               district_number: districtId,
-              representative: UTAH_REPRESENTATIVES[districtId] || '',
+              representative: rep?.name || '',
+              party: rep?.party,
               region: UTAH_DISTRICT_REGIONS[districtId] || '',
             } as UtahDistrictData;
           })
@@ -185,7 +193,10 @@ export default function CongressionalDistrictImpact({ year = 2026 }: Props) {
                     UT-{String(d.district_number).padStart(2, '0')}
                     <span className="block text-xs text-gray-500 font-normal">{d.region}</span>
                   </td>
-                  <td className="py-3 px-4 text-gray-700">{d.representative}</td>
+                  <td className="py-3 px-4" style={{ color: partyColor(d.party) }}>
+                    {d.representative}
+                    {d.party ? <span className="ml-1 text-xs">({d.party})</span> : null}
+                  </td>
                   <td className="py-3 px-4 text-right text-gray-700">
                     {d.average_household_income_change >= 0 ? '+' : ''}
                     ${d.average_household_income_change.toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -238,7 +249,10 @@ function DistrictDetailCard({
               Utah District {district.district_number}
             </h4>
             <p className="text-sm text-gray-500">
-              {district.representative}
+              <span style={{ color: partyColor(district.party) }}>
+                {district.representative}
+                {district.party ? ` (${district.party})` : ''}
+              </span>
               {district.region ? ` — ${district.region}` : ''}
             </p>
           </div>
