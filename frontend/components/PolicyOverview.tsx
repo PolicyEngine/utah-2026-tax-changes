@@ -18,55 +18,17 @@ export default function PolicyOverview() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <h3 className="font-semibold text-gray-800 mb-2">SB60 rate cut</h3>
-            <p className="text-sm text-gray-600 mb-2">
+            <p className="text-sm text-gray-600">
               Utah&apos;s state income tax rate drops from 4.5% to 4.45%, a
               0.05 percentage point reduction applied to all taxable income.
-            </p>
-            <p className="text-xs text-gray-600">
-              <a
-                href="https://www.policyengine.org/us/state-legislative-tracker/UT/ut-sb60-bill"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-600 hover:underline"
-              >
-                Bill tracker
-              </a>
-              {' · '}
-              <a
-                href="https://le.utah.gov/~2025/bills/static/SB0060.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-600 hover:underline"
-              >
-                Bill text
-              </a>
             </p>
           </div>
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <h3 className="font-semibold text-gray-800 mb-2">HB290 CTC expansion</h3>
-            <p className="text-sm text-gray-600 mb-2">
+            <p className="text-sm text-gray-600">
               Raises the income thresholds at which Utah&apos;s Child Tax Credit
               begins to phase out, expanding eligibility for middle-income
               families.
-            </p>
-            <p className="text-xs text-gray-600">
-              <a
-                href="https://www.policyengine.org/us/state-legislative-tracker/UT/ut-hb290"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-600 hover:underline"
-              >
-                Bill tracker
-              </a>
-              {' · '}
-              <a
-                href="https://le.utah.gov/~2026/bills/static/HB0290.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-600 hover:underline"
-              >
-                Bill text
-              </a>
             </p>
           </div>
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
