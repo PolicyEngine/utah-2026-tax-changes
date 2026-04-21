@@ -416,7 +416,7 @@ export default function AggregateImpact({ triggered }: Props) {
                 We find no impact on poverty from these reforms.
               </p>
               <p className="text-xs text-gray-500 mt-3">
-                Note: Neither SB60 nor HB290 reaches households below the Supplemental Poverty Measure threshold &mdash; their Utah state tax liability is already zero, so a rate cut or expanded CTC threshold produces no change in disposable income at that level.
+                Note: Neither SB60 nor HB290 reaches households below the Supplemental Poverty Measure threshold &mdash; their Utah state tax liability is already zero, so a rate cut or expanded CTC threshold produces no change in net income at that level.
               </p>
             </div>
           </div>
