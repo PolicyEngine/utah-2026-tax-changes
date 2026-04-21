@@ -323,6 +323,28 @@ function HouseholdImpactTab() {
         </div>
       </section>
 
+      {/* Chart x-axis options */}
+      {triggered && (
+        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+          <span>Chart x-axis max:</span>
+          {[100000, 200000, 500000, 1000000].map((v) => (
+            <button
+              key={v}
+              onClick={() => {
+                setMaxEarnings(v);
+                setSubmittedRequest(prev => prev ? { ...prev, max_earnings: v } : null);
+              }}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                maxEarnings === v
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              ${v >= 1000000 ? `${v / 1000000}M` : `${v / 1000}k`}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Impact results */}
       {submittedRequest && (
