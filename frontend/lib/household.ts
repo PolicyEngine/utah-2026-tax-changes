@@ -79,6 +79,7 @@ export function buildHouseholdSituation(
         members: ["you"],
         adjusted_gross_income: { [yearStr]: null },
         income_tax: { [yearStr]: null },
+        ut_income_tax: { [yearStr]: null },
       },
     },
     households: {
@@ -86,7 +87,6 @@ export function buildHouseholdSituation(
         members: ["you"],
         state_code: { [yearStr]: effectiveStateCode },
         household_net_income: { [yearStr]: null },
-        ut_income_tax: { [yearStr]: null },
       },
     },
     axes: [

@@ -122,11 +122,11 @@ export const api = {
 
     // Extract Utah state income tax arrays.
     const baselineStateTax: number[] =
-      baselineResult.result.households["your household"]["ut_income_tax"][
+      baselineResult.result.tax_units["your tax unit"]["ut_income_tax"][
         yearStr
       ];
     const reformStateTax: number[] =
-      reformResult.result.households["your household"]["ut_income_tax"][
+      reformResult.result.tax_units["your tax unit"]["ut_income_tax"][
         yearStr
       ];
 
