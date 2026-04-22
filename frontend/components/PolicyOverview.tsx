@@ -119,7 +119,7 @@ export default function PolicyOverview() {
               </li>
               <li>
                 <a
-                  href="https://le.utah.gov/~2025/bills/static/SB0060.html"
+                  href="https://le.utah.gov/~2026/bills/static/SB0060.html"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary-600 hover:underline"
