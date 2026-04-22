@@ -39,6 +39,11 @@ export default function PolicyOverview() {
             </p>
           </div>
         </div>
+        <p className="text-xs text-gray-500 italic">
+          Note: SB60 also lowers Utah&apos;s corporate franchise and income tax rate
+          from 4.5% to 4.45%. That provision is not included in this analysis,
+          which focuses on household-level impacts.
+        </p>
       </div>
 
       {/* Parameter changes table */}
