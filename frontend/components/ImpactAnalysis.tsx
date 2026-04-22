@@ -106,15 +106,18 @@ export default function ImpactAnalysis({ request, triggered, maxEarnings }: Prop
     }))
     .filter((d) => d.income <= xMax);
 
-  const metricCard = (label: string, value: number) => {
-    const positive = value > 0;
-    const negative = value < 0;
+  // For tax-change metrics (federal, state), a REDUCTION (negative) is good
+  // for the household, so we flip the color sign. For net income change,
+  // a positive value is good for the household (no flip).
+  const metricCard = (label: string, value: number, lowerIsBetter = false) => {
+    const beneficial = lowerIsBetter ? value < 0 : value > 0;
+    const harmful = lowerIsBetter ? value > 0 : value < 0;
     return (
       <div
         className={`rounded-lg p-6 border ${
-          positive
+          beneficial
             ? 'bg-green-50 border-success'
-            : negative
+            : harmful
             ? 'bg-red-50 border-red-300'
             : 'bg-gray-50 border-gray-300'
         }`}
@@ -122,7 +125,7 @@ export default function ImpactAnalysis({ request, triggered, maxEarnings }: Prop
         <p className="text-sm text-gray-700 mb-2">{label}</p>
         <p
           className={`text-3xl font-bold ${
-            positive ? 'text-green-600' : negative ? 'text-red-600' : 'text-gray-600'
+            beneficial ? 'text-green-600' : harmful ? 'text-red-600' : 'text-gray-600'
           }`}
         >
           {value !== 0 ? `${formatCurrencyWithSign(value)}/year` : '$0/year'}
@@ -191,8 +194,8 @@ export default function ImpactAnalysis({ request, triggered, maxEarnings }: Prop
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {metricCard('Federal tax change', federalTaxChangePoint)}
-          {metricCard('Utah state tax change', stateTaxChangePoint)}
+          {metricCard('Federal tax change', federalTaxChangePoint, true)}
+          {metricCard('Utah state tax change', stateTaxChangePoint, true)}
           {metricCard('Net income change', netIncomeChangePoint)}
         </div>
       </div>

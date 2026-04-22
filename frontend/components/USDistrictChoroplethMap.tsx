@@ -133,9 +133,9 @@ export default function UtahDistrictChoroplethMap({
         {Object.entries(UTAH_DISTRICT_PATHS).map(([num, { path, center }]) => {
           const districtData = dataByDistrict.get(num);
           const value = districtData?.average_household_income_change ?? 0;
-          const fill = districtData
-            ? interpolateColor(value, colorRange.min, colorRange.max)
-            : '#e5e7eb';
+          // All Utah districts see similar impact, so use a single teal shade
+          // (matches the "positive impact" end of the diverging palette).
+          const fill = districtData ? '#319795' : '#e5e7eb';
           const isSelected = selectedDistrict === num;
 
           return (
@@ -176,7 +176,7 @@ export default function UtahDistrictChoroplethMap({
                 dominantBaseline="middle"
                 fontSize="14"
                 fontWeight="700"
-                fill={value > (colorRange.max + colorRange.min) / 2 ? '#0f172a' : '#ffffff'}
+                fill="#ffffff"
                 style={{ pointerEvents: 'none', userSelect: 'none' }}
               >
                 {num}
@@ -210,16 +210,7 @@ export default function UtahDistrictChoroplethMap({
         </div>
       )}
 
-      {/* Legend */}
-      <div className="mt-4 flex items-center justify-center gap-2">
-        <span className="text-sm text-gray-600">{formatSignedCurrency(minChange)}</span>
-        <div
-          className="h-4 w-48 rounded"
-          style={{ background: `linear-gradient(to right, ${DIVERGING_COLORS.join(', ')})` }}
-        />
-        <span className="text-sm text-gray-600">{formatSignedCurrency(maxChange)}</span>
-      </div>
-      <p className="text-xs text-gray-500 text-center mt-1">
+      <p className="text-xs text-gray-500 text-center mt-4">
         Average household impact from Utah 2026 tax changes
       </p>
     </div>

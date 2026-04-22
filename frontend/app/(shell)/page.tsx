@@ -52,7 +52,7 @@ export default function Home() {
             Utah 2026 Tax Changes Calculator
           </h1>
           <p className="text-lg opacity-90">
-            See the impact of SB60 and HB290 on Utah households
+            See the impact of Utah&apos;s 2026 legislative session tax reforms on Utah households
           </p>
         </div>
       </div>
