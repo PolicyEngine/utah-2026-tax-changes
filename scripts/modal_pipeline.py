@@ -224,27 +224,12 @@ def calculate_year(year: int) -> dict:
     )
 
     # ===== INEQUALITY =====
-    # Use the CBO-comparable preset from policyengine.py:
-    #   * person-weighted (weight * household_count_people)
-    #   * equivalize income by sqrt(household_size)
-    # This yields canonical US inequality numbers (Gini ~0.45-0.55).
+    # STANDARD preset from policyengine.py: household-weighted, no equivalization.
+    # Uses the same mask in baseline and reform so we compare identical populations.
     print("  Calculating inequality impact...")
     weights = np.array(sim_baseline.calculate("household_weight", period=year))
-    hh_people = np.array(
-        sim_baseline.calculate(
-            "household_count_people", period=year, map_to="household"
-        )
-    )
     net_bl_arr = np.array(baseline_net_income)
     net_rf_arr = np.array(reform_net_income)
-
-    # Person-weighted: each household counted by its size
-    adj_weights = weights * hh_people
-    # Equivalize net income: divide by sqrt(household_size) to adjust for
-    # economies of scale (CBO / OECD square-root-scale convention).
-    sqrt_size = np.sqrt(np.maximum(hh_people, 1))
-    eq_net_bl = net_bl_arr / sqrt_size
-    eq_net_rf = net_rf_arr / sqrt_size
 
     def _weighted_gini(values: np.ndarray, w: np.ndarray) -> float:
         if len(values) == 0 or w.sum() == 0:
@@ -264,7 +249,6 @@ def calculate_year(year: int) -> dict:
         return float(1 - 2 * area)
 
     def _top_share(values: np.ndarray, w: np.ndarray, top_quantile: float) -> float:
-        """Share of total income going to households above the `top_quantile` by weight."""
         if len(values) == 0 or w.sum() == 0:
             return 0.0
         order = np.argsort(values)
@@ -279,19 +263,18 @@ def calculate_year(year: int) -> dict:
         mask = frac > top_quantile
         return float(np.sum(v[mask] * ww[mask]) / total_income)
 
-    def _clean(values: np.ndarray, w: np.ndarray):
-        """Filter to positive incomes only (standard US inequality convention)."""
-        mask = values > 0
-        return values[mask], w[mask]
+    # Consistent mask: positive in BOTH baseline and reform (same population compared)
+    common_mask = (net_bl_arr > 0) & (net_rf_arr > 0)
+    vb = net_bl_arr[common_mask]
+    vr = net_rf_arr[common_mask]
+    ww = weights[common_mask]
 
-    vb, wb = _clean(eq_net_bl, adj_weights)
-    vr, wr = _clean(eq_net_rf, adj_weights)
-    gini_baseline = _weighted_gini(vb, wb)
-    gini_reform = _weighted_gini(vr, wr)
-    top_10_share_baseline = _top_share(vb, wb, 0.9)
-    top_10_share_reform = _top_share(vr, wr, 0.9)
-    top_1_share_baseline = _top_share(vb, wb, 0.99)
-    top_1_share_reform = _top_share(vr, wr, 0.99)
+    gini_baseline = _weighted_gini(vb, ww)
+    gini_reform = _weighted_gini(vr, ww)
+    top_10_share_baseline = _top_share(vb, ww, 0.9)
+    top_10_share_reform = _top_share(vr, ww, 0.9)
+    top_1_share_baseline = _top_share(vb, ww, 0.99)
+    top_1_share_reform = _top_share(vr, ww, 0.99)
 
     # ===== INCOME BRACKET BREAKDOWN =====
     print("  Calculating income brackets...")
