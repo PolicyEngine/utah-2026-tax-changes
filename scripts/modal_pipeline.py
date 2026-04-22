@@ -31,7 +31,6 @@ image = (
         "numpy>=1.24.0",
         "pandas>=2.0.0",
         "huggingface_hub",
-        "microdf_python",
     )
 )
 
@@ -224,44 +223,75 @@ def calculate_year(year: int) -> dict:
         else 0.0
     )
 
-    # ===== INEQUALITY IMPACT =====
+    # ===== INEQUALITY =====
+    # Use the CBO-comparable preset from policyengine.py:
+    #   * person-weighted (weight * household_count_people)
+    #   * equivalize income by sqrt(household_size)
+    # This yields canonical US inequality numbers (Gini ~0.45-0.55).
     print("  Calculating inequality impact...")
-    from microdf import MicroSeries
-
-    weights = sim_baseline.calculate("household_weight", period=year)
-    net_bl = MicroSeries(baseline_net_income, weights=weights)
-    net_rf = MicroSeries(reform_net_income, weights=weights)
-
-    gini_baseline = float(net_bl.gini())
-    gini_reform = float(net_rf.gini())
-
-    if hasattr(net_bl, "top_10_pct_share"):
-        top_10_share_baseline = float(net_bl.top_10_pct_share())
-        top_10_share_reform = float(net_rf.top_10_pct_share())
-    elif hasattr(net_bl, "top_x_pct_share"):
-        top_10_share_baseline = float(net_bl.top_x_pct_share(10))
-        top_10_share_reform = float(net_rf.top_x_pct_share(10))
-    else:
-        top_10_share_baseline = float(
-            net_bl[net_bl >= net_bl.quantile(0.9)].sum() / net_bl.sum()
+    weights = np.array(sim_baseline.calculate("household_weight", period=year))
+    hh_people = np.array(
+        sim_baseline.calculate(
+            "household_count_people", period=year, map_to="household"
         )
-        top_10_share_reform = float(
-            net_rf[net_rf >= net_rf.quantile(0.9)].sum() / net_rf.sum()
-        )
+    )
+    net_bl_arr = np.array(baseline_net_income)
+    net_rf_arr = np.array(reform_net_income)
 
-    if hasattr(net_bl, "top_1_pct_share"):
-        top_1_share_baseline = float(net_bl.top_1_pct_share())
-        top_1_share_reform = float(net_rf.top_1_pct_share())
-    elif hasattr(net_bl, "top_x_pct_share"):
-        top_1_share_baseline = float(net_bl.top_x_pct_share(1))
-        top_1_share_reform = float(net_rf.top_x_pct_share(1))
-    else:
-        top_1_share_baseline = float(
-            net_bl[net_bl >= net_bl.quantile(0.99)].sum() / net_bl.sum()
-        )
-        top_1_share_reform = float(
-            net_rf[net_rf >= net_rf.quantile(0.99)].sum() / net_rf.sum()
-        )
+    # Person-weighted: each household counted by its size
+    adj_weights = weights * hh_people
+    # Equivalize net income: divide by sqrt(household_size) to adjust for
+    # economies of scale (CBO / OECD square-root-scale convention).
+    sqrt_size = np.sqrt(np.maximum(hh_people, 1))
+    eq_net_bl = net_bl_arr / sqrt_size
+    eq_net_rf = net_rf_arr / sqrt_size
+
+    def _weighted_gini(values: np.ndarray, w: np.ndarray) -> float:
+        if len(values) == 0 or w.sum() == 0:
+            return 0.0
+        order = np.argsort(values)
+        v = values[order]
+        ww = w[order]
+        cum_w = np.cumsum(ww)
+        total_w = cum_w[-1]
+        cum_vw = np.cumsum(v * ww)
+        total_vw = cum_vw[-1]
+        if total_vw == 0:
+            return 0.0
+        lorenz = cum_vw / total_vw
+        wf = ww / total_w
+        area = np.sum(wf * (lorenz - wf / 2))
+        return float(1 - 2 * area)
+
+    def _top_share(values: np.ndarray, w: np.ndarray, top_quantile: float) -> float:
+        """Share of total income going to households above the `top_quantile` by weight."""
+        if len(values) == 0 or w.sum() == 0:
+            return 0.0
+        order = np.argsort(values)
+        v = values[order]
+        ww = w[order]
+        total_income = float(np.sum(v * ww))
+        if total_income == 0:
+            return 0.0
+        cum_w = np.cumsum(ww)
+        total_w = cum_w[-1]
+        frac = cum_w / total_w
+        mask = frac > top_quantile
+        return float(np.sum(v[mask] * ww[mask]) / total_income)
+
+    def _clean(values: np.ndarray, w: np.ndarray):
+        """Filter to positive incomes only (standard US inequality convention)."""
+        mask = values > 0
+        return values[mask], w[mask]
+
+    vb, wb = _clean(eq_net_bl, adj_weights)
+    vr, wr = _clean(eq_net_rf, adj_weights)
+    gini_baseline = _weighted_gini(vb, wb)
+    gini_reform = _weighted_gini(vr, wr)
+    top_10_share_baseline = _top_share(vb, wb, 0.9)
+    top_10_share_reform = _top_share(vr, wr, 0.9)
+    top_1_share_baseline = _top_share(vb, wb, 0.99)
+    top_1_share_reform = _top_share(vr, wr, 0.99)
 
     # ===== INCOME BRACKET BREAKDOWN =====
     print("  Calculating income brackets...")
