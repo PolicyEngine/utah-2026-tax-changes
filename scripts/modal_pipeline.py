@@ -31,6 +31,7 @@ image = (
         "numpy>=1.24.0",
         "pandas>=2.0.0",
         "huggingface_hub",
+        "microdf_python",
     )
 )
 
@@ -223,6 +224,45 @@ def calculate_year(year: int) -> dict:
         else 0.0
     )
 
+    # ===== INEQUALITY IMPACT =====
+    print("  Calculating inequality impact...")
+    from microdf import MicroSeries
+
+    weights = sim_baseline.calculate("household_weight", period=year)
+    net_bl = MicroSeries(baseline_net_income, weights=weights)
+    net_rf = MicroSeries(reform_net_income, weights=weights)
+
+    gini_baseline = float(net_bl.gini())
+    gini_reform = float(net_rf.gini())
+
+    if hasattr(net_bl, "top_10_pct_share"):
+        top_10_share_baseline = float(net_bl.top_10_pct_share())
+        top_10_share_reform = float(net_rf.top_10_pct_share())
+    elif hasattr(net_bl, "top_x_pct_share"):
+        top_10_share_baseline = float(net_bl.top_x_pct_share(10))
+        top_10_share_reform = float(net_rf.top_x_pct_share(10))
+    else:
+        top_10_share_baseline = float(
+            net_bl[net_bl >= net_bl.quantile(0.9)].sum() / net_bl.sum()
+        )
+        top_10_share_reform = float(
+            net_rf[net_rf >= net_rf.quantile(0.9)].sum() / net_rf.sum()
+        )
+
+    if hasattr(net_bl, "top_1_pct_share"):
+        top_1_share_baseline = float(net_bl.top_1_pct_share())
+        top_1_share_reform = float(net_rf.top_1_pct_share())
+    elif hasattr(net_bl, "top_x_pct_share"):
+        top_1_share_baseline = float(net_bl.top_x_pct_share(1))
+        top_1_share_reform = float(net_rf.top_x_pct_share(1))
+    else:
+        top_1_share_baseline = float(
+            net_bl[net_bl >= net_bl.quantile(0.99)].sum() / net_bl.sum()
+        )
+        top_1_share_reform = float(
+            net_rf[net_rf >= net_rf.quantile(0.99)].sum() / net_rf.sum()
+        )
+
     # ===== INCOME BRACKET BREAKDOWN =====
     print("  Calculating income brackets...")
     agi = sim_baseline.calculate("adjusted_gross_income", period=year, map_to="household")
@@ -293,6 +333,12 @@ def calculate_year(year: int) -> dict:
         "deep_child_poverty_reform_rate": deep_child_poverty_reform_rate,
         "deep_child_poverty_rate_change": deep_child_poverty_rate_change,
         "deep_child_poverty_percent_change": deep_child_poverty_percent_change,
+        "gini_baseline": gini_baseline,
+        "gini_reform": gini_reform,
+        "top_10_share_baseline": top_10_share_baseline,
+        "top_10_share_reform": top_10_share_reform,
+        "top_1_share_baseline": top_1_share_baseline,
+        "top_1_share_reform": top_1_share_reform,
         "by_income_bracket": by_income_bracket,
     }
 
@@ -372,6 +418,12 @@ def main(years: str = ""):
             ("deep_child_poverty_reform_rate", result["deep_child_poverty_reform_rate"]),
             ("deep_child_poverty_rate_change", result["deep_child_poverty_rate_change"]),
             ("deep_child_poverty_percent_change", result["deep_child_poverty_percent_change"]),
+            ("gini_baseline", result["gini_baseline"]),
+            ("gini_reform", result["gini_reform"]),
+            ("top_10_share_baseline", result["top_10_share_baseline"]),
+            ("top_10_share_reform", result["top_10_share_reform"]),
+            ("top_1_share_baseline", result["top_1_share_baseline"]),
+            ("top_1_share_reform", result["top_1_share_reform"]),
         ]
         for metric, value in metrics:
             metrics_rows.append({"year": year, "metric": metric, "value": value})

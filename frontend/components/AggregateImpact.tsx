@@ -70,7 +70,7 @@ export default function AggregateImpact({ triggered }: Props) {
   const selectedYear = UTAH_DASHBOARD_YEAR;
   const { data, isLoading, error } = useAggregateImpact(triggered, selectedYear);
   const [activeSection, setActiveSection] = useState<
-    'fiscal' | 'distributional' | 'winners' | 'poverty'
+    'fiscal' | 'distributional' | 'winners' | 'poverty' | 'inequality'
   >('fiscal');
   const [distMode, setDistMode] = useState<'relative' | 'absolute'>('relative');
 
@@ -124,6 +124,7 @@ export default function AggregateImpact({ triggered }: Props) {
     // Winners & losers tab temporarily hidden
     // { key: 'winners' as const, label: 'Winners & losers' },
     { key: 'poverty' as const, label: 'Poverty impact' },
+    { key: 'inequality' as const, label: 'Inequality impact' },
   ];
 
   return (
@@ -422,6 +423,133 @@ export default function AggregateImpact({ triggered }: Props) {
           </div>
         </div>
       )}
+
+      {/* ===== INEQUALITY IMPACT ===== */}
+      {activeSection === 'inequality' && (() => {
+        const ineq = data.inequality;
+        const metrics = [
+          { key: 'gini', label: 'Gini index', baseline: ineq.gini.baseline, reform: ineq.gini.reform },
+          { key: 'top_10_share', label: 'Top 10% share', baseline: ineq.top_10_share.baseline, reform: ineq.top_10_share.reform },
+          { key: 'top_1_share', label: 'Top 1% share', baseline: ineq.top_1_share.baseline, reform: ineq.top_1_share.reform },
+        ];
+
+        const chartData = metrics.map((m) => {
+          const pctChange = m.baseline !== 0 ? (m.reform / m.baseline - 1) * 100 : 0;
+          return {
+            name: m.label,
+            value: pctChange,
+            baseline: m.baseline,
+            reform: m.reform,
+          };
+        });
+
+        const rawValues = chartData.map((d) => d.value);
+        const maxAbs = Math.max(...rawValues.map(Math.abs), 0.01);
+        const niceStep = (() => {
+          const rough = maxAbs / 3;
+          const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+          const residual = rough / mag;
+          if (residual <= 1) return mag;
+          if (residual <= 2) return 2 * mag;
+          if (residual <= 5) return 5 * mag;
+          return 10 * mag;
+        })();
+        const niceMax = Math.ceil(maxAbs / niceStep) * niceStep;
+        const symmetricDomain: [number, number] = [-niceMax, niceMax];
+        const niceTicks = Array.from(
+          { length: Math.round(2 * niceMax / niceStep) + 1 },
+          (_, i) => -niceMax + i * niceStep,
+        );
+
+        const allNegative = rawValues.every((v) => v < 0);
+        const allPositive = rawValues.every((v) => v > 0);
+        const direction = allNegative ? 'reduce' : allPositive ? 'increase' : 'have an ambiguous effect on';
+
+        const formatPct = (v: number, digits = 2) =>
+          `${v >= 0 ? '+' : ''}${v.toFixed(digits)}%`;
+
+        return (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                This reform would {direction} income inequality in Utah
+              </h3>
+              <p className="text-gray-700 text-sm">
+                Relative change in inequality metrics from baseline (current law) to pre-2026 law.
+              </p>
+            </div>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={chartData} margin={CHART_MARGIN}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
+                <XAxis dataKey="name" tick={TICK_STYLE} stroke="var(--chart-axis)" />
+                <YAxis
+                  domain={symmetricDomain}
+                  ticks={niceTicks}
+                  tickFormatter={(v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`}
+                  tick={TICK_STYLE}
+                  stroke="var(--chart-axis)"
+                  width={70}
+                  label={{
+                    value: 'Relative change',
+                    angle: -90,
+                    position: 'insideLeft',
+                    style: { ...TICK_STYLE, fill: 'var(--chart-axis-label)', textAnchor: 'middle' },
+                  }}
+                />
+                <Tooltip content={<CustomTooltip formatter={(v) => formatPct(v)} />} />
+                <ReferenceLine y={0} stroke="var(--chart-axis)" strokeWidth={1} />
+                <Bar dataKey="value" name="Relative change" radius={[2, 2, 0, 0]}>
+                  {rawValues.map((v, i) => (
+                    <Cell key={i} fill={v < 0 ? COLORS.positive : COLORS.negative} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            <ChartWatermark />
+
+            {/* Baseline vs reform table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-300">
+                    <th className="text-left px-4 py-3 font-medium text-gray-900">Metric</th>
+                    <th className="text-right px-4 py-3 font-medium text-gray-900">Baseline (current law)</th>
+                    <th className="text-right px-4 py-3 font-medium text-gray-900">Pre-{UTAH_DASHBOARD_YEAR} law</th>
+                    <th className="text-right px-4 py-3 font-medium text-gray-900">Relative change</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {chartData.map((row, i) => {
+                    const isGini = row.name === 'Gini index';
+                    const baseFmt = isGini
+                      ? row.baseline.toFixed(4)
+                      : `${(row.baseline * 100).toFixed(2)}%`;
+                    const reformFmt = isGini
+                      ? row.reform.toFixed(4)
+                      : `${(row.reform * 100).toFixed(2)}%`;
+                    return (
+                      <tr key={i} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 text-gray-900">{row.name}</td>
+                        <td className="px-4 py-3 text-gray-700 text-right">{baseFmt}</td>
+                        <td className="px-4 py-3 text-gray-700 text-right">{reformFmt}</td>
+                        <td
+                          className="px-4 py-3 font-semibold text-right"
+                          style={{ color: row.value < 0 ? COLORS.positive : COLORS.negative }}
+                        >
+                          {formatPct(row.value)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-gray-500 mt-3 italic">
+              Income inequality is calculated from household net income after taxes and transfers, weighted by household weight. A reduction in the Gini index or top income shares indicates reduced inequality.
+            </p>
+          </div>
+        );
+      })()}
 
       <p className="text-sm text-gray-500 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
         These estimates are static: they do not capture behavioral responses such as changes in labor supply, tax avoidance, or migration.

@@ -101,6 +101,11 @@ function buildAggregateResponse(year: number): Promise<AggregateImpactResponse> 
           child: { baseline: m.deep_child_poverty_baseline_rate, reform: m.deep_child_poverty_reform_rate },
         },
       },
+      inequality: {
+        gini: { baseline: m.gini_baseline, reform: m.gini_reform },
+        top_10_share: { baseline: m.top_10_share_baseline, reform: m.top_10_share_reform },
+        top_1_share: { baseline: m.top_1_share_baseline, reform: m.top_1_share_reform },
+      },
       total_cost: m.total_cost,
       beneficiaries: m.beneficiaries,
       avg_benefit: m.avg_benefit,

@@ -87,11 +87,23 @@ export interface PovertyImpact {
   deep_poverty: PovertyCategory;
 }
 
+export interface InequalityMetric {
+  baseline: number;
+  reform: number;
+}
+
+export interface InequalityImpact {
+  gini: InequalityMetric;
+  top_10_share: InequalityMetric;
+  top_1_share: InequalityMetric;
+}
+
 export interface AggregateImpactResponse {
   budget: BudgetImpact;
   decile: DecileImpact;
   intra_decile: IntraDecile;
   poverty: PovertyImpact;
+  inequality: InequalityImpact;
   total_cost: number;
   beneficiaries: number;
   avg_benefit: number;
