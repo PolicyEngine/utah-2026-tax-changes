@@ -178,6 +178,7 @@ export default function Footer() {
               <input
                 type="email"
                 placeholder="Enter your email address"
+                aria-label="Email address"
                 style={{
                   width: '100%',
                   height: '40px',

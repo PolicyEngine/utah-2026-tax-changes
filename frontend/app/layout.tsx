@@ -8,7 +8,7 @@ const GA_ID = 'G-2YHG89FY0N';
 
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
 });
 
@@ -17,7 +17,7 @@ const SITE_URL = 'https://policyengine.org/us/utah-2026-tax-changes';
 export const metadata: Metadata = {
   title: 'Utah 2026 Tax Changes Calculator',
   description:
-    "See how Utah's 2026 tax changes (SB60 income tax rate cut and HB290 Child Tax Credit expansion) affect your household and the state.",
+    "Use PolicyEngine's free calculator to see how Utah's 2026 tax changes (SB60 income tax rate cut and HB290 Child Tax Credit expansion) affect your household and the state budget.",
   metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: SITE_URL,
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Utah 2026 Tax Changes Calculator',
     description:
-      "See how Utah's 2026 tax changes (SB60 income tax rate cut and HB290 Child Tax Credit expansion) affect your household and the state.",
+      "Use PolicyEngine's free calculator to see how Utah's 2026 tax changes (SB60 income tax rate cut and HB290 Child Tax Credit expansion) affect your household and the state budget.",
     url: SITE_URL,
     siteName: 'PolicyEngine',
     type: 'website',
@@ -35,13 +35,14 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Utah 2026 Tax Changes Calculator',
     description:
-      "See how Utah's 2026 tax changes (SB60 income tax rate cut and HB290 Child Tax Credit expansion) affect your household and the state.",
+      "Use PolicyEngine's free calculator to see how Utah's 2026 tax changes (SB60 income tax rate cut and HB290 Child Tax Credit expansion) affect your household and the state budget.",
   },
   other: {
     'theme-color': '#2C7A7B', // CSS var not supported in meta tags, matches --theme-color
   },
   icons: {
     icon: '/favicon.svg',
+    apple: '/apple-touch-icon.png',
   },
   robots: {
     index: true,
@@ -57,6 +58,27 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.className}>
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebApplication',
+              name: 'Utah 2026 Tax Changes Calculator',
+              url: SITE_URL,
+              applicationCategory: 'FinanceApplication',
+              operatingSystem: 'All',
+              offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+              description:
+                "Use PolicyEngine's free calculator to see how Utah's 2026 tax changes (SB60 income tax rate cut and HB290 Child Tax Credit expansion) affect your household and the state budget.",
+              publisher: {
+                '@type': 'Organization',
+                name: 'PolicyEngine',
+                url: 'https://policyengine.org',
+              },
+            }),
+          }}
+        />
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
           strategy="afterInteractive"

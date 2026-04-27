@@ -493,7 +493,7 @@ export default function Header() {
                 </svg>
               </button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {NAV_ITEMS.map((item) =>
                 item.hasDropdown ? (
                   <div key={item.label}>
@@ -514,7 +514,7 @@ export default function Header() {
                   </a>
                 ),
               )}
-            </div>
+            </nav>
           </div>
         </>
       )}

@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import ImpactAnalysis from '@/components/ImpactAnalysis';
-import AggregateImpact from '@/components/AggregateImpact';
+import dynamic from 'next/dynamic';
 import PolicyOverview from '@/components/PolicyOverview';
-import CongressionalDistrictImpact from '@/components/CongressionalDistrictImpact';
+
+const ImpactAnalysis = dynamic(() => import('@/components/ImpactAnalysis'), { ssr: false });
+const AggregateImpact = dynamic(() => import('@/components/AggregateImpact'), { ssr: false });
+const CongressionalDistrictImpact = dynamic(() => import('@/components/CongressionalDistrictImpact'), { ssr: false });
 import type { HouseholdRequest } from '@/lib/types';
 import { parseHashParams } from '@/lib/embedding';
 

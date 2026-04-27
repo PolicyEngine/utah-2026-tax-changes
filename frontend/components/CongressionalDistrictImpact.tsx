@@ -119,9 +119,9 @@ export default function CongressionalDistrictImpact({ year = 2026 }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 className="text-xl font-bold text-gray-900 mb-2">
           Utah congressional district impacts ({year})
-        </h3>
+        </h2>
         <p className="text-gray-600">
           Average household impact by congressional district from Utah 2026 tax changes
           (current law vs. pre-2026 law). Hover over a district for details and click to pin.
@@ -260,7 +260,7 @@ function DistrictDetailCard({
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600 p-1"
-          title="Close"
+          aria-label="Close"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

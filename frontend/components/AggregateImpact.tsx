@@ -91,7 +91,7 @@ export default function AggregateImpact({ triggered }: Props) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-        <h3 className="text-gray-800 font-semibold mb-2">Utah impact data not yet available</h3>
+        <h2 className="text-gray-800 font-semibold mb-2">Utah impact data not yet available</h2>
         <p className="text-gray-600 font-medium mb-2">{errorMessage}</p>
         <p className="text-sm text-gray-500 mt-4">
           Precomputed data has not been generated yet. Run: <code>python scripts/pipeline.py</code>
