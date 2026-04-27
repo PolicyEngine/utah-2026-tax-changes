@@ -44,14 +44,6 @@ export default function PolicyOverview() {
           from 4.5% to 4.45%. That provision is not included in this analysis,
           which focuses on household-level impacts.
         </p>
-        <p className="text-xs text-gray-500 italic mt-2">
-          State fiscal notes: the Utah Legislature&apos;s official fiscal notes
-          project SB60 at roughly <strong>$101 million</strong> and HB290 at
-          roughly <strong>$7.1 million</strong> per year of state revenue cost.
-          PolicyEngine&apos;s overall estimate is under these combined amounts as
-          we do not include SB60&apos;s corporate franchise and income tax
-          provision.
-        </p>
       </div>
 
       {/* Parameter changes table */}

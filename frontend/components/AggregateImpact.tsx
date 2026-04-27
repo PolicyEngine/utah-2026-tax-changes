@@ -156,7 +156,7 @@ export default function AggregateImpact({ triggered }: Props) {
           {/* Selected year impact - 3 cards */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-3">
-              Utah state revenue change ({selectedYear})
+              Revenue change ({selectedYear})
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className={`rounded-lg p-5 border ${
@@ -199,6 +199,14 @@ export default function AggregateImpact({ triggered }: Props) {
                 </p>
               </div>
             </div>
+            <p className="text-xs text-gray-500 italic mt-3">
+              State fiscal notes: the Utah Legislature&apos;s official fiscal
+              notes project SB60 at roughly <strong>$101 million</strong> and
+              HB290 at roughly <strong>$7.1 million</strong> per year of state
+              revenue cost. PolicyEngine&apos;s overall estimate is under these
+              combined amounts as we do not include SB60&apos;s corporate
+              franchise and income tax provision.
+            </p>
           </div>
 
           {/* Income bracket table */}
