@@ -48,8 +48,9 @@ export default function PolicyOverview() {
           State fiscal notes: the Utah Legislature&apos;s official fiscal notes
           project SB60 at roughly <strong>$101 million</strong> and HB290 at
           roughly <strong>$7.1 million</strong> per year of state revenue cost.
-          PolicyEngine&apos;s estimates fall below these for SB60 because we do
-          not include SB60&apos;s corporate franchise and income tax provision.
+          PolicyEngine&apos;s overall estimate is under these combined amounts as
+          we do not include SB60&apos;s corporate franchise and income tax
+          provision.
         </p>
       </div>
 
