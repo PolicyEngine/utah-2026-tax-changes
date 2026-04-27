@@ -28,6 +28,12 @@ const US_STATES = [
   { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' },
 ];
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'policy' | 'impact' | 'aggregate' | 'districts'>('policy');
 
@@ -37,6 +43,23 @@ export default function Home() {
     { id: 'aggregate' as const, label: 'Statewide impact' },
     { id: 'districts' as const, label: 'Congressional districts' },
   ];
+
+  // Fire the tool_engaged conversion event after the user has been on
+  // the page long enough to count as genuinely engaged. Matches the
+  // 15-second threshold and event shape used by policyengine-app-v2's
+  // AppClient so these conversions feed into the same GA4/Google Ads
+  // reporting as the other tools.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'tool_engaged', {
+          tool_name: 'utah-2026-tax-changes',
+          tool_title: 'Utah 2026 Tax Changes Calculator',
+        });
+      }
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Simple tab change handler
   const handleTabChange = useCallback((tab: 'policy' | 'impact' | 'aggregate' | 'districts') => {
