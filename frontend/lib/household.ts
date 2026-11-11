@@ -1,5 +1,5 @@
 /**
- * Build a PolicyEngine household situation for the PE API.
+ * Build a PolicyEngine household situation for a household calculation.
  *
  * For the Utah 2026 Tax Changes dashboard:
  * - The PolicyEngine baseline represents 2026 Utah law (SB60 + HB290 already applied).
@@ -132,7 +132,7 @@ export function buildHouseholdSituation(
 }
 
 /**
- * Build the Utah 2026 reform policy dict for the PE API.
+ * Build the Utah 2026 reform's parameter changes.
  * Reverts Utah to 2025 values so the dashboard can compute:
  *   impact = current-law baseline - pre-2026 reform
  */
