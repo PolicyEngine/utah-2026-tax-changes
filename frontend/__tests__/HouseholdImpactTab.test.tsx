@@ -160,4 +160,47 @@ describe('HouseholdImpactTab', () => {
     expect(chartRangeEnd(container)).toBe('$100k');
     expect(highlightedChartRange()).toBe('$100k');
   });
+
+  it('shows a refusal itself after the household tab is opened again', async () => {
+    // Leaving the tab and coming back empties the results area, so a later
+    // refusal must not bring the earlier answer back.
+    const calculate = vi
+      .spyOn(api, 'calculateHouseholdImpact')
+      .mockResolvedValueOnce(calculatedAnswer)
+      .mockImplementation(refuseAndPause);
+    renderPage();
+    fireEvent.click(screen.getByRole('tab', { name: 'Household impact' }));
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Calculate impact' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Based on your employment income of/),
+      ).toHaveTextContent('$50,000'),
+    );
+    fireEvent.click(screen.getByRole('tab', { name: 'Policy overview' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Household impact' }));
+    expect(
+      screen.queryByText(/Based on your employment income of/),
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByDisplayValue('50,000'), {
+      target: { value: '60,000' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Calculate impact' }));
+    expect(await screen.findByText(refusalMessage)).toBeInTheDocument();
+
+    expect(calculate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ income: 60000 }),
+    );
+    expect(
+      screen.queryByText(/Based on your employment income of/),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('The results below are for the household shown before.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Household calculator temporarily unavailable'),
+    ).toBeInTheDocument();
+  });
 });
