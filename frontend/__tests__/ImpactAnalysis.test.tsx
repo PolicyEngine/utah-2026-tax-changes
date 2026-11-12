@@ -7,13 +7,20 @@ import { pauseHouseholdCalculations } from '../hooks/useHouseholdImpact';
 import { api, HouseholdCalculationError } from '../lib/api';
 import type { HouseholdImpactResponse, HouseholdRequest } from '../lib/types';
 
-// Recharts' ResponsiveContainer measures its parent, which jsdom cannot do.
+// Recharts' ResponsiveContainer measures its parent, which jsdom cannot do,
+// so the chart gets a fixed size instead, and draws its income axis.
 vi.mock('recharts', async () => {
   const actual = await vi.importActual<typeof import('recharts')>('recharts');
+  const { cloneElement } = await vi.importActual<typeof import('react')>('react');
   return {
     ...actual,
-    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid="responsive-container">{children}</div>
+    ResponsiveContainer: ({ children }: { children: React.ReactElement }) => (
+      <div data-testid="responsive-container">
+        {cloneElement(
+          children as React.ReactElement<{ width: number; height: number }>,
+          { width: 800, height: 400 },
+        )}
+      </div>
     ),
   };
 });
@@ -75,6 +82,14 @@ async function waitForAnswerAtIncome(income: string): Promise<void> {
   );
 }
 
+/** The label of the last tick on the chart's income axis: where it ends. */
+function chartRangeEnd(container: HTMLElement): string | null | undefined {
+  const tickLabels = container.querySelectorAll(
+    '.recharts-xAxis .recharts-cartesian-axis-tick-value',
+  );
+  return tickLabels[tickLabels.length - 1]?.textContent;
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
   pauseHouseholdCalculations(0);
@@ -118,6 +133,103 @@ describe('ImpactAnalysis', () => {
     expect(
       screen.queryByText('Household calculator temporarily unavailable'),
     ).not.toBeInTheDocument();
+  });
+
+  it('keeps an answer it calculated itself on screen after a rate-limit refusal', async () => {
+    // The earlier answer is calculated while the component shows the
+    // household, not placed in the cache before.
+    const queryClient = new QueryClient();
+    const calculate = vi
+      .spyOn(api, 'calculateHouseholdImpact')
+      .mockResolvedValueOnce(earlierAnswer)
+      .mockRejectedValue(
+        new HouseholdCalculationError(refusalMessage, 429, false, true),
+      );
+    const { rerender } = render(
+      impactAnalysis(queryClient, {
+        request: earlierRequest,
+        triggered: true,
+        maxEarnings: 100000,
+      }),
+    );
+    await waitForAnswerAtIncome('$50,000');
+
+    rerender(
+      impactAnalysis(queryClient, {
+        request: refusedRequest,
+        triggered: true,
+        maxEarnings: 100000,
+      }),
+    );
+
+    expect(await screen.findByRole('status')).toHaveTextContent(refusalMessage);
+    expect(calculate).toHaveBeenCalledTimes(2);
+    expect(
+      screen.getByText(/Based on your employment income of/),
+    ).toHaveTextContent('$50,000');
+    expect(
+      screen.queryByText('Household calculator temporarily unavailable'),
+    ).not.toBeInTheDocument();
+  });
+
+  it("draws the chart over the shown household's range after a rate-limit refusal", async () => {
+    // The page passes the refused household's range; the chart keeps the
+    // range of the household whose answer it shows.
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(['householdImpact', earlierRequest], earlierAnswer);
+    vi.spyOn(api, 'calculateHouseholdImpact').mockRejectedValue(
+      new HouseholdCalculationError(refusalMessage, 429, false, true),
+    );
+    const { container, rerender } = render(
+      impactAnalysis(queryClient, {
+        request: earlierRequest,
+        triggered: true,
+        maxEarnings: 100000,
+      }),
+    );
+    await waitForAnswerAtIncome('$50,000');
+    expect(chartRangeEnd(container)).toBe('$100k');
+
+    rerender(
+      impactAnalysis(queryClient, {
+        request: { ...earlierRequest, max_earnings: 500000 },
+        triggered: true,
+        maxEarnings: 500000,
+      }),
+    );
+
+    await screen.findByRole('status');
+    expect(chartRangeEnd(container)).toBe('$100k');
+  });
+
+  it('records no answer while the results area is not shown', async () => {
+    // The household's answer is in the cache, but the results area is
+    // not shown, so a refusal has no earlier answer to show.
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(['householdImpact', earlierRequest], earlierAnswer);
+    vi.spyOn(api, 'calculateHouseholdImpact').mockRejectedValue(
+      new HouseholdCalculationError(refusalMessage, 429, false, true),
+    );
+    const { rerender } = render(
+      impactAnalysis(queryClient, {
+        request: earlierRequest,
+        triggered: false,
+        maxEarnings: 100000,
+      }),
+    );
+
+    rerender(
+      impactAnalysis(queryClient, {
+        request: refusedRequest,
+        triggered: true,
+        maxEarnings: 100000,
+      }),
+    );
+
+    expect(
+      await screen.findByText('Household calculator temporarily unavailable'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
   it('tells the page which household is shown after a rate-limit refusal', async () => {
