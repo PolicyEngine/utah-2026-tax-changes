@@ -48,6 +48,7 @@ export default function ImpactAnalysis({
         <div className="text-center">
           <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
           <p className="mt-4 text-gray-600">Calculating impact...</p>
+          <p className="mt-1 text-sm text-gray-500">A first calculation can take a few minutes.</p>
         </div>
       </div>
     );
@@ -198,8 +199,11 @@ export default function ImpactAnalysis({
 
   return (
     <div className="space-y-8">
+      {/* Not a live region: the span beside the Calculate button, on screen
+          during the pause that every refusal starts, announces the
+          explanation. */}
       {rateLimitNotice && (
-        <div role="status" className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-900">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-900">
           <p>{rateLimitNotice}</p>
           <p className="mt-1 text-sm">The results below are for the household shown before.</p>
         </div>

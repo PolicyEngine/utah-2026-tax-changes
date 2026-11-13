@@ -34,11 +34,33 @@ import {
 
 const policyengine = createPolicyEngineApiClient();
 
-/** How long a calculation may take before the page gives up on it. */
-const CALCULATION_TIMEOUT_MILLISECONDS = 120_000;
+/**
+ * How long a calculation may take before the page gives up on it: 30 s more
+ * than the dashboard API's 750 s wait for a household calculation (the
+ * policyengine-api-access skill's errors table), so the dashboard API's own
+ * 504 arrives first. Its route runs for at most 800 s.
+ */
+const CALCULATION_TIMEOUT_MILLISECONDS = 780_000;
 
-/** Brief gateway failures, which are worth retrying. */
-const RETRYABLE_STATUSES = new Set([502, 503, 504]);
+/**
+ * Statuses after which a household calculation is tried once more, following
+ * the errors table of the policyengine-api-access skill. A 502 (the dashboard
+ * API could not get its token or reach the Public API), or a 503 from the
+ * Public API (it could not check the token), is worth one more try. A 503
+ * from the dashboard API itself (its settings are missing) fails the same way
+ * on that one retry and is then shown. A 504 is not retried: the dashboard API
+ * has already waited 750 s for the household.
+ */
+const RETRYABLE_STATUSES = new Set([502, 503]);
+
+/** The shortest wait before the one retry of a household calculation. */
+const SHORTEST_RETRY_WAIT_MILLISECONDS = 2_000;
+
+/**
+ * The longest wait the page retries after. A failure whose Retry-After asks
+ * for longer is shown instead.
+ */
+const LONGEST_RETRY_WAIT_MILLISECONDS = 60_000;
 
 /**
  * What the page says about the firewall's limit, which everyone behind one
@@ -98,7 +120,7 @@ export class HouseholdCalculationError extends Error {
     message: string,
     /** The dashboard API's HTTP status, or null when no answer was read. */
     readonly status: number | null,
-    /** Whether trying again at once could succeed. */
+    /** Whether one more try, after a short wait, could succeed. */
     readonly retryable: boolean,
     /**
      * Whether the firewall's limit may have refused it: a 429, no readable
@@ -106,15 +128,34 @@ export class HouseholdCalculationError extends Error {
      * calculation held back during the pause after a refusal.
      */
     readonly rateLimited: boolean = false,
+    /** The answer's Retry-After in seconds, or null when it named none. */
+    readonly retryAfterSeconds: number | null = null,
   ) {
     super(message);
   }
 }
 
 /**
+ * How long React Query waits before retrying a failed household calculation:
+ * the failure's Retry-After, but never less than two seconds.
+ */
+export function householdRetryDelay(
+  failureCount: number,
+  error: unknown,
+): number {
+  const retryAfterMilliseconds =
+    error instanceof HouseholdCalculationError &&
+    error.retryAfterSeconds !== null
+      ? error.retryAfterSeconds * 1000
+      : 0;
+  return Math.max(SHORTEST_RETRY_WAIT_MILLISECONDS, retryAfterMilliseconds);
+}
+
+/**
  * Whether React Query should retry a failed household calculation: once,
- * and only after a brief gateway failure. Each attempt sends two
- * calculations, and the firewall allows 30 a minute.
+ * only after a 502 or a 503, and only when the wait before it is a minute or
+ * less. Each attempt sends two calculations, and the firewall allows 30 a
+ * minute.
  */
 export function shouldRetryHouseholdCalculation(
   failureCount: number,
@@ -123,7 +164,8 @@ export function shouldRetryHouseholdCalculation(
   return (
     failureCount < 1 &&
     error instanceof HouseholdCalculationError &&
-    error.retryable
+    error.retryable &&
+    householdRetryDelay(failureCount, error) <= LONGEST_RETRY_WAIT_MILLISECONDS
   );
 }
 
@@ -167,6 +209,7 @@ function calculationError(error: PolicyEngineApiError): HouseholdCalculationErro
       429,
       false,
       true,
+      error.retryAfterSeconds,
     );
   }
   const detail =
@@ -175,6 +218,8 @@ function calculationError(error: PolicyEngineApiError): HouseholdCalculationErro
     `PolicyEngine could not calculate this household (HTTP ${error.status}): ${detail}`,
     error.status,
     RETRYABLE_STATUSES.has(error.status),
+    false,
+    error.retryAfterSeconds,
   );
 }
 
@@ -216,7 +261,7 @@ async function calculateHousehold(
   } catch (error) {
     if (controller.signal.aborted) {
       throw new HouseholdCalculationError(
-        "The calculation took longer than two minutes. Try again.",
+        `The calculation took longer than ${CALCULATION_TIMEOUT_MILLISECONDS / 60_000} minutes. Try again.`,
         null,
         false,
       );
