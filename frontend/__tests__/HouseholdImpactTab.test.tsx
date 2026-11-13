@@ -1,10 +1,20 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import Home from '../app/(shell)/page';
 import { pauseHouseholdCalculations } from '../hooks/useHouseholdImpact';
-import { api, HouseholdCalculationError } from '../lib/api';
+import {
+  api,
+  HouseholdCalculationError,
+  SHARED_LIMIT_EXPLANATION,
+} from '../lib/api';
 import type { HouseholdImpactResponse } from '../lib/types';
 
 // Recharts' ResponsiveContainer measures its parent, which jsdom cannot do,
@@ -81,6 +91,26 @@ function highlightedChartRange(): string | undefined {
     ?.textContent ?? undefined;
 }
 
+/**
+ * The notice above a kept answer, once it is shown: the refusal, and that
+ * the results are the earlier household's.
+ */
+function refusalNotice(): HTMLElement | undefined {
+  const notice = screen.queryByText(
+    'The results below are for the household shown before.',
+  )?.parentElement;
+  return notice?.textContent?.includes(refusalMessage) ? notice : undefined;
+}
+
+/** The live regions whose text includes the shared-limit explanation. */
+function liveRegionsWithSharedLimitExplanation(): HTMLElement[] {
+  return screen
+    .queryAllByRole('status')
+    .filter((liveRegion) =>
+      liveRegion.textContent?.includes(SHARED_LIMIT_EXPLANATION),
+    );
+}
+
 /** The label of the last tick on the chart's income axis: where it ends. */
 function chartRangeEnd(container: HTMLElement): string | null | undefined {
   const tickLabels = container.querySelectorAll(
@@ -95,7 +125,7 @@ afterEach(() => {
 });
 
 describe('HouseholdImpactTab', () => {
-  it('explains the pause beside the Calculate button, announcing only the explanation', async () => {
+  it('explains the pause beside the Calculate button, announcing only the explanation, once even above a kept answer', async () => {
     pauseHouseholdCalculations();
     renderPage();
     fireEvent.click(screen.getByRole('tab', { name: 'Household impact' }));
@@ -119,6 +149,33 @@ describe('HouseholdImpactTab', () => {
     expect(pauseNote.querySelector('[role="status"]')).toHaveTextContent(
       /^Everyone on your network, such as a workshop or an office, shares a limit on calculations a minute\.$/,
     );
+
+    // After the pause, the page calculates a household, then a refusal
+    // keeps that answer on screen under its notice and starts the pause
+    // again. The explanation is still announced from one place only.
+    vi.spyOn(api, 'calculateHouseholdImpact')
+      .mockResolvedValueOnce(calculatedAnswer)
+      .mockImplementation(refuseAndPause);
+    act(() => pauseHouseholdCalculations(0));
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Calculate impact' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Based on your employment income of/),
+      ).toHaveTextContent('$50,000'),
+    );
+    fireEvent.click(screen.getByRole('button', { name: '$500k' }));
+    await waitFor(() => expect(refusalNotice()).toBeDefined());
+    const pausedCalculateButton = await screen.findByRole('button', {
+      name: /Calculate again in \d+ s/,
+    });
+
+    const liveRegions = liveRegionsWithSharedLimitExplanation();
+    expect(liveRegions).toHaveLength(1);
+    expect(pausedCalculateButton.parentElement).toContainElement(
+      liveRegions[0],
+    );
   });
 
   it("keeps a calculated household's chart range and highlighted x-axis button after a refusal", async () => {
@@ -141,13 +198,7 @@ describe('HouseholdImpactTab', () => {
     expect(chartRangeEnd(container)).toBe('$100k');
 
     fireEvent.click(screen.getByRole('button', { name: '$500k' }));
-    await waitFor(() =>
-      expect(
-        screen
-          .queryAllByRole('status')
-          .some((status) => status.textContent?.includes(refusalMessage)),
-      ).toBe(true),
-    );
+    await waitFor(() => expect(refusalNotice()).toBeDefined());
 
     expect(calculate).toHaveBeenLastCalledWith(
       expect.objectContaining({ income: 50000, max_earnings: 500000 }),

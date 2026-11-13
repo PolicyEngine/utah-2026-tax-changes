@@ -82,6 +82,16 @@ async function waitForAnswerAtIncome(income: string): Promise<void> {
   );
 }
 
+const keptAnswerNote = 'The results below are for the household shown before.';
+
+/**
+ * Waits for the notice above a kept answer: the element holding the note
+ * that the results are the earlier household's.
+ */
+async function findKeptAnswerNotice(): Promise<HTMLElement | null> {
+  return (await screen.findByText(keptAnswerNote)).parentElement;
+}
+
 /** The label of the last tick on the chart's income axis: where it ends. */
 function chartRangeEnd(container: HTMLElement): string | null | undefined {
   const tickLabels = container.querySelectorAll(
@@ -96,6 +106,24 @@ afterEach(() => {
 });
 
 describe('ImpactAnalysis', () => {
+  it('says a first calculation can take a few minutes while it runs', async () => {
+    vi.spyOn(api, 'calculateHouseholdImpact').mockReturnValue(
+      new Promise(() => undefined),
+    );
+    render(
+      impactAnalysis(new QueryClient(), {
+        request: earlierRequest,
+        triggered: true,
+        maxEarnings: 100000,
+      }),
+    );
+
+    expect(await screen.findByText('Calculating impact...')).toBeInTheDocument();
+    expect(
+      screen.queryByText('A first calculation can take a few minutes.'),
+    ).toBeInTheDocument();
+  });
+
   it('shows the answer that was on screen and the notice after a rate-limit refusal', async () => {
     const queryClient = new QueryClient();
     queryClient.setQueryData(['householdImpact', earlierRequest], earlierAnswer);
@@ -120,7 +148,7 @@ describe('ImpactAnalysis', () => {
       }),
     );
 
-    const notice = await screen.findByRole('status');
+    const notice = await findKeptAnswerNotice();
     expect(notice).toHaveTextContent(refusalMessage);
     // The answer shown need not be the one calculated last.
     expect(notice).toHaveTextContent(
@@ -162,7 +190,7 @@ describe('ImpactAnalysis', () => {
       }),
     );
 
-    expect(await screen.findByRole('status')).toHaveTextContent(refusalMessage);
+    expect(await findKeptAnswerNotice()).toHaveTextContent(refusalMessage);
     expect(calculate).toHaveBeenCalledTimes(2);
     expect(
       screen.getByText(/Based on your employment income of/),
@@ -198,7 +226,7 @@ describe('ImpactAnalysis', () => {
       }),
     );
 
-    await screen.findByRole('status');
+    await findKeptAnswerNotice();
     expect(chartRangeEnd(container)).toBe('$100k');
   });
 
@@ -229,7 +257,7 @@ describe('ImpactAnalysis', () => {
     expect(
       await screen.findByText('Household calculator temporarily unavailable'),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.queryByText(keptAnswerNote)).not.toBeInTheDocument();
   });
 
   it('tells the page which household is shown after a rate-limit refusal', async () => {
@@ -263,7 +291,7 @@ describe('ImpactAnalysis', () => {
       }),
     );
 
-    await screen.findByRole('status');
+    await findKeptAnswerNotice();
     expect(shownRequests.at(-1)).toEqual(earlierRequest);
   });
 });
